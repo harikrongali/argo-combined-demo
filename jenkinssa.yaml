@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: "2022-04-28T00:13:47Z"
+  name: jenkins
+  namespace: argo
+  resourceVersion: "280491"
+  uid: 3b08338f-d0b5-4cb1-99c3-aec54b784c73
+secrets:
+- name: jenkins-token-n2khk

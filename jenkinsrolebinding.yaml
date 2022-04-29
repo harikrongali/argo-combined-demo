@@ -1,0 +1,16 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: "2022-04-28T00:13:55Z"
+  name: jenkins
+  namespace: argo
+  resourceVersion: "280514"
+  uid: 1dc1869c-4d7a-438c-86f0-82c0e521ca46
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: jenkins
+subjects:
+- kind: ServiceAccount
+  name: jenkins
+  namespace: argo
