@@ -23,7 +23,7 @@ spec:
           - name: dep-two-1
             template: prom-query
             arguments:
-              parameters: [{name: servicename, value: "service-one"}]
+              parameters: [{name: servicename, value: "service-four"}]
           - name: dep-three-1
             template: prom-query
             arguments:
@@ -31,7 +31,7 @@ spec:
           - name: dep-two-2
             template: prom-query
             arguments:
-              parameters: [{name: servicename, value: "service-one"}]
+              parameters: [{name: servicename, value: "service-four"}]
           - name: dep-three-2
             template: prom-query
             arguments:
@@ -39,16 +39,8 @@ spec:
           - name: dep-two-3
             template: prom-query
             arguments:
-              parameters: [{name: servicename, value: "service-one"}]
-          - name: dep-three-3
-            template: prom-query
-            arguments:
               parameters: [{name: servicename, value: "service-four"}]
-          - name: dep-two-4
-            template: prom-query
-            arguments:
-              parameters: [{name: servicename, value: "service-one"}]
-          - name: dep-three-4
+          - name: dep-three-3
             template: prom-query
             arguments:
               parameters: [{name: servicename, value: "service-four"}]
@@ -97,9 +89,7 @@ spec:
           import time
           prome_sql = '(sum(sum_over_time(istio_requests_total{response_code=~"2[0-9]+", namespace="{{inputs.parameters.servicename}}"}[11m]))/sum(sum_over_time(istio_requests_total{namespace="{{inputs.parameters.servicename}}"}[11m]))) * 100'
           result = 0
-          response = requests.get('http://prometheus.istio-system.svc.cluster.local:9090/api/v1/query',
-              params={'query': prome_sql})
-          x = range(6)
+          x = range(5)
           for n in x:
             response = requests.get('http://prometheus.istio-system.svc.cluster.local:9090/api/v1/query',
               params={'query': prome_sql})
@@ -107,7 +97,7 @@ spec:
             if float(response.json()["data"]['result'][0]['value'][1]) < 99.00:
                result=1
                break
-            time.sleep(3)
+            time.sleep(10)
           print(result)
     - name: run-argo
       inputs:
