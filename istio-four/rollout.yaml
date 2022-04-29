@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: service-four
+spec:
+  replicas: 1
+  strategy:
+    canary:
+      canaryService: service-four-canary
+      stableService: service-four-stable
+      trafficRouting:
+        istio:
+          virtualService:
+            name: service-four-vsvc
+            routes:
+            - primary # At least one route is required
+      steps:
+      - setWeight: 50
+      - analysis:
+          templates:
+          - templateName: success-rate
+      - pause: {}
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: service-four
+  template:
+    metadata:
+      labels:
+        app: service-four
+        istio-injection: enabled
+    spec:
+      containers:
+      - name: service-four
+        image: argoproj/rollouts-demo:green
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        resources:
+          requests:
+            memory: 32Mi
+            cpu: 5m

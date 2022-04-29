@@ -1,0 +1,18 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: service-one-vsvc
+spec:
+  gateways:
+  - service-one-gateway
+  hosts:
+  - service-one.local
+  http:
+  - name: primary
+    route:
+    - destination:
+        host: service-one-stable
+      weight: 100
+    - destination:
+        host: service-one-canary
+      weight: 0

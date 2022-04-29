@@ -1,0 +1,123 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: my-wf-tmple
+spec:
+  serviceAccountName: jenkins
+  entrypoint: hello-hello-hello
+  templates:
+    - name: hello-hello-hello
+      steps:
+        - - name: dep-one
+            template: prom-query
+            arguments:
+              parameters: [{name: servicename, value: "service-two"}]
+          - name: dep-two
+            template: prom-query
+            arguments:
+              parameters: [{name: servicename, value: "service-one"}]
+          - name: dep-three
+            template: prom-query
+            arguments:
+              parameters: [{name: servicename, value: "service-four"}]
+          - name: dep-two-1
+            template: prom-query
+            arguments:
+              parameters: [{name: servicename, value: "service-one"}]
+          - name: dep-three-1
+            template: prom-query
+            arguments:
+              parameters: [{name: servicename, value: "service-four"}]
+          - name: dep-two-2
+            template: prom-query
+            arguments:
+              parameters: [{name: servicename, value: "service-one"}]
+          - name: dep-three-2
+            template: prom-query
+            arguments:
+              parameters: [{name: servicename, value: "service-four"}]
+          - name: dep-two-3
+            template: prom-query
+            arguments:
+              parameters: [{name: servicename, value: "service-one"}]
+          - name: dep-three-3
+            template: prom-query
+            arguments:
+              parameters: [{name: servicename, value: "service-four"}]
+          - name: dep-two-4
+            template: prom-query
+            arguments:
+              parameters: [{name: servicename, value: "service-one"}]
+          - name: dep-three-4
+            template: prom-query
+            arguments:
+              parameters: [{name: servicename, value: "service-four"}]
+        - - name: rollback
+            template: run-argo
+            arguments:
+              parameters: [{name: servicename, value: "rollout-demo"}]
+            when: >-
+              ( {{steps.dep-one.outputs.result}} == 1 ||
+                {{steps.dep-two.outputs.result}} == 1 ||
+                 {{steps.dep-three.outputs.result}} == 1
+              )
+        - - name: complete
+            template: whalesay
+            arguments:
+              parameters: [ { name: servicename, value: "rollout-demo" } ]
+            when: >-
+              ( {{steps.dep-one.outputs.result}} == 0 &&
+                {{steps.dep-two.outputs.result}} == 0 &&
+                {{steps.dep-three.outputs.result}} == 0
+              )
+#              ||
+#              ( {{steps.flip-coin.outputs.result}} == tails &&
+#                {{steps.flip-again.outputs.result}} == tails )
+
+
+    - name: whalesay
+      inputs:
+        parameters:
+          - name: servicename
+      container:
+        image: docker/whalesay
+        command: [cowsay]
+        args: ["{{inputs.parameters.servicename}}"]
+
+    - name: prom-query
+      inputs:
+        parameters:
+          - name: servicename
+      script:
+        image: broadinstitute/python-requests
+        command: [python]
+        source: |
+          import requests
+          import sys
+          import time
+          prome_sql = '(sum(sum_over_time(istio_requests_total{response_code=~"2[0-9]+", namespace="{{inputs.parameters.servicename}}"}[11m]))/sum(sum_over_time(istio_requests_total{namespace="{{inputs.parameters.servicename}}"}[11m]))) * 100'
+          result = 0
+          response = requests.get('http://prometheus.istio-system.svc.cluster.local:9090/api/v1/query',
+              params={'query': prome_sql})
+          x = range(6)
+          for n in x:
+            response = requests.get('http://prometheus.istio-system.svc.cluster.local:9090/api/v1/query',
+              params={'query': prome_sql})
+            #print response.json()["data"]['result'][0]['value'][1]
+            if float(response.json()["data"]['result'][0]['value'][1]) < 99.00:
+               result=1
+               break
+            time.sleep(3)
+          print(result)
+    - name: run-argo
+      inputs:
+        parameters:
+          - name: servicename
+          - name: SERVER
+            value: "argocd-server.argocd.svc.cluster.local"
+          - name: AUTHTOKEN
+            value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcmdvY2QiLCJzdWIiOiJyb25nYWxpOmFwaUtleSIsIm5iZiI6MTY1MTE2MTM0MiwiaWF0IjoxNjUxMTYxMzQyLCJqdGkiOiI5Njk0NzI2Zi04ZGNiLTRkZmMtYjkzMC0zYmI0NTAyY2I5NmUifQ.ovMXP2BgRqkuVK0diujw97HCqV9nBDNKbNDjsI6SIFA"
+      container:
+        image: monetago/argocd-cli-alpine
+        command: [sh, -c]
+        args: ["export ID=$(argocd app --server {{inputs.parameters.SERVER}} --insecure --plaintext --auth-token {{inputs.parameters.AUTHTOKEN}} history rollout-demo | tail -2 | head -n 1 | awk '{print $1;}'); argocd app --server {{inputs.parameters.SERVER}} --insecure --plaintext --auth-token {{inputs.parameters.AUTHTOKEN}} rollback rollout-demo ${ID}"]

@@ -1,0 +1,18 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: service-four-vsvc
+spec:
+  gateways:
+  - service-four-gateway
+  hosts:
+  - service-four.local
+  http:
+  - name: primary
+    route:
+    - destination:
+        host: service-four-stable
+      weight: 100
+    - destination:
+        host: service-four-canary
+      weight: 0

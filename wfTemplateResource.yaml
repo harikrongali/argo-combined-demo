@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: my-wf-tmple
+spec:
+  entrypoint: pi-tmpl
+  templates:
+    - name: pi-tmpl
+      resource:                   # indicates that this is a resource template
+        action: apply            # can be any kubectl action (e.g. create, delete, apply, patch)
+        # The successCondition and failureCondition are optional expressions.
+        # If failureCondition is true, the step is considered failed.
+        # If successCondition is true, the step is considered successful.
+        # They use kubernetes label selection syntax and can be applied against any field
+        # of the resource (not just labels). Multiple AND conditions can be represented by comma
+        # delimited expressions.
+        # For more details: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+        successCondition: status.succeeded > 0
+        failureCondition: status.failed > 3
+        manifest: |               #put your kubernetes spec here
+          apiVersion: argoproj.io/v1alpha1
+          kind: Experiment
+          metadata:
+            name: experiment-with-analysis
+          spec:
+            templates:
+            - name: purple
+              selector:
+                matchLabels:
+                  app: rollouts-demo
+              template:
+                metadata:
+                  labels:
+                    app: rollouts-demo
+                spec:
+                  containers:
+                  - name: rollouts-demo
+                    image: argoproj/rollouts-demo:purple
+                    imagePullPolicy: Always
+            - name: orange
+              selector:
+                matchLabels:
+                  app: rollouts-demo
+              template:
+                metadata:
+                  labels:
+                    app: rollouts-demo
+                spec:
+                  containers:
+                  - name: rollouts-demo
+                    image: argoproj/rollouts-demo:orange
+                    imagePullPolicy: Always
+            analyses:
+            - name: success-rate
+              templateName: success-rate

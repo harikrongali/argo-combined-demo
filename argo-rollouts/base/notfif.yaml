@@ -1,0 +1,238 @@
+apiVersion: v1
+data:
+  service.webhook.wfwebhook: |
+    url: http://argo-server.argo.svc.cluster.local:2746/api/v1/events/argo/my-discriminator
+    headers: #optional headers
+    - name: Authorization
+      value: 'Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6Im5OeTAzb0FsZE14UnFaX1VKYWtadExVS2c3ejBjZWkzWmlFVmtyRUdYSkkifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJhcmdvIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImplbmtpbnMtdG9rZW4tbjJraGsiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiamVua2lucyIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjNiMDgzMzhmLWQwYjUtNGNiMS05OWMzLWFlYzU0Yjc4NGM3MyIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDphcmdvOmplbmtpbnMifQ.LqLwaOnDHBAgTY3qsgmNxWNU7YlNpnFJJPBIlCv-OnMcMFBcJLUhNYeg9OipglPWuY12GyXX7lHLktqrAo9lMrynF6DxaTR0T4485I3MQIw4BiFnJ3AV8ZFYL-JsbKq16E9UmBqZCLf0sv5HvkSCmUcVTGhDAqIReu10TtYBcPhdW-So6AZ75Q-sSP_grvc8oQ9Qi4Jma2cy0DLrIDAeCV2pKh7gmmNn2dU0K1rVGWLNfIJSGisFwM0_WKT6k3xZnNQ-0RtsLvgH_F-NIvHYm6K6f1qVtS4aLq-ZaGPIzmEiMojUzv_YuAMhFXrPNoG_nCVx1dNM-hYeDmLJq7HYQw'
+  template.analysis-run-error: |
+    message: Rollout {{.rollout.metadata.name}}'s analysis run is in error state.
+    email:
+      subject: Rollout {{.rollout.metadata.name}}'s analysis run is in error state.
+    slack:
+      attachments: |
+          [{
+            "title": "{{ .rollout.metadata.name}}",
+            "color": "#ECB22E",
+            "fields": [
+            {
+              "title": "Strategy",
+              "value": "{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if .rollout.spec.strategy.canary}}Canary{{end}}",
+              "short": true
+            }
+            {{range $index, $c := .rollout.spec.template.spec.containers}}
+              {{if not $index}},{{end}}
+              {{if $index}},{{end}}
+              {
+                "title": "{{$c.name}}",
+                "value": "{{$c.image}}",
+                "short": true
+              }
+            {{end}}
+            ]
+          }]
+  template.analysis-run-failed: |
+    message: Rollout {{.rollout.metadata.name}}'s analysis run failed.
+    email:
+      subject: Rollout {{.rollout.metadata.name}}'s analysis run failed.
+    slack:
+      attachments: |
+          [{
+            "title": "{{ .rollout.metadata.name}}",
+            "color": "#E01E5A",
+            "fields": [
+            {
+              "title": "Strategy",
+              "value": "{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if .rollout.spec.strategy.canary}}Canary{{end}}",
+              "short": true
+            }
+            {{range $index, $c := .rollout.spec.template.spec.containers}}
+              {{if not $index}},{{end}}
+              {{if $index}},{{end}}
+              {
+                "title": "{{$c.name}}",
+                "value": "{{$c.image}}",
+                "short": true
+              }
+            {{end}}
+            ]
+          }]
+  template.analysis-run-running: |
+    message: Rollout {{.rollout.metadata.name}}'s analysis run is running.
+    email:
+      subject: Rollout {{.rollout.metadata.name}}'s analysis run is running.
+    slack:
+      attachments: |
+          [{
+            "title": "{{ .rollout.metadata.name}}",
+            "color": "#18be52",
+            "fields": [
+            {
+              "title": "Strategy",
+              "value": "{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if .rollout.spec.strategy.canary}}Canary{{end}}",
+              "short": true
+            }
+            {{range $index, $c := .rollout.spec.template.spec.containers}}
+              {{if not $index}},{{end}}
+              {{if $index}},{{end}}
+              {
+                "title": "{{$c.name}}",
+                "value": "{{$c.image}}",
+                "short": true
+              }
+            {{end}}
+            ]
+          }]
+  template.rollout-aborted: |
+    message: Rollout {{.rollout.metadata.name}} has been aborted.
+    email:
+      subject: Rollout {{.rollout.metadata.name}} has been aborted.
+    slack:
+      attachments: |
+          [{
+            "title": "{{ .rollout.metadata.name}}",
+            "color": "#E01E5A",
+            "fields": [
+            {
+              "title": "Strategy",
+              "value": "{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if .rollout.spec.strategy.canary}}Canary{{end}}",
+              "short": true
+            }
+            {{range $index, $c := .rollout.spec.template.spec.containers}}
+              {{if not $index}},{{end}}
+              {{if $index}},{{end}}
+              {
+                "title": "{{$c.name}}",
+                "value": "{{$c.image}}",
+                "short": true
+              }
+            {{end}}
+            ]
+          }]
+  template.rollout-completed: |
+    webhook:
+      wfwebhook:
+        method: POST # one of: GET, POST, PUT, PATCH. Default value: GET
+        body: |
+          {"message": "hello"}
+  template.rollout-paused: |
+    message: Rollout {{.rollout.metadata.name}} has been paused.
+    email:
+      subject: Rollout {{.rollout.metadata.name}} has been paused.
+    slack:
+      attachments: |
+          [{
+            "title": "{{ .rollout.metadata.name}}",
+            "color": "#18be52",
+            "fields": [
+            {
+              "title": "Strategy",
+              "value": "{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if .rollout.spec.strategy.canary}}Canary{{end}}",
+              "short": true
+            }
+            {{range $index, $c := .rollout.spec.template.spec.containers}}
+              {{if not $index}},{{end}}
+              {{if $index}},{{end}}
+              {
+                "title": "{{$c.name}}",
+                "value": "{{$c.image}}",
+                "short": true
+              }
+            {{end}}
+            ]
+          }]
+  template.rollout-step-completed: |
+    webhook:
+      wfwebhook:
+        method: POST # one of: GET, POST, PUT, PATCH. Default value: GET
+        body: |
+          {"message": "hello"}
+  template.rollout-updated: |
+    message: Rollout {{.rollout.metadata.name}} has been updated.
+    email:
+      subject: Rollout {{.rollout.metadata.name}} has been updated.
+    slack:
+      attachments: |
+          [{
+            "title": "{{ .rollout.metadata.name}}",
+            "color": "#18be52",
+            "fields": [
+            {
+              "title": "Strategy",
+              "value": "{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if .rollout.spec.strategy.canary}}Canary{{end}}",
+              "short": true
+            }
+            {{range $index, $c := .rollout.spec.template.spec.containers}}
+              {{if not $index}},{{end}}
+              {{if $index}},{{end}}
+              {
+                "title": "{{$c.name}}",
+                "value": "{{$c.image}}",
+                "short": true
+              }
+            {{end}}
+            ]
+          }]
+  template.scaling-replicaset: |
+    message: Scaling Rollout {{.rollout.metadata.name}}'s replicaset to {{.rollout.spec.replicas}}.
+    email:
+      subject: Scaling Rollout {{.rollout.metadata.name}}'s replcaset to {{.rollout.spec.replicas}}.
+    slack:
+      attachments: |
+          [{
+            "title": "{{ .rollout.metadata.name}}",
+            "color": "#18be52",
+            "fields": [
+            {
+              "title": "Strategy",
+              "value": "{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if .rollout.spec.strategy.canary}}Canary{{end}}",
+              "short": true
+            },
+            {
+              "title": "Desired replica",
+              "value": "{{.rollout.spec.replicas}}",
+              "short": true
+            },
+            {
+              "title": "Updated replicas",
+              "value": "{{.rollout.status.updatedReplicas}}",
+              "short": true
+            }
+            {{range $index, $c := .rollout.spec.template.spec.containers}}
+              {{if not $index}},{{end}}
+              {{if $index}},{{end}}
+              {
+                "title": "{{$c.name}}",
+                "value": "{{$c.image}}",
+                "short": true
+              }
+            {{end}}
+            ]
+          }]
+  trigger.on-analysis-run-error: |
+    - send: [analysis-run-error]
+  trigger.on-analysis-run-failed: |
+    - send: [analysis-run-failed]
+  trigger.on-analysis-run-running: |
+    - send: [analysis-run-running]
+  trigger.on-rollout-aborted: |
+    - send: [rollout-aborted]
+  trigger.on-rollout-complete: |
+    - send: [rollout-completed]
+  trigger.on-rollout-completed: |
+    - send: [rollout-completed]
+  trigger.on-rollout-paused: |
+    - send: [rollout-paused]
+  trigger.on-rollout-step-complete: |
+    - send: [rollout-step-completed]
+  trigger.on-rollout-step-completed: |
+    - send: [rollout-step-completed]
+  trigger.on-rollout-updated: |
+    - send: [rollout-updated]
+  trigger.on-scaling-replica-set: |
+    - send: [scaling-replicaset]
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/instance: argo-rollouts
+  name: argo-rollouts-notification-configmap

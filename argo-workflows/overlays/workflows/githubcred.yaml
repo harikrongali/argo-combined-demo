@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-access
+  namespace: workflows
+type: Opaque
+data:
+  token: LW4gZ2hwX2p5M1V3emdEc0tsb2FMMXc3eHpxeTJzb3VLMlFQeTFBeGNuSAo=
+  user: LW4gaGFyaWtyb25nYWxpCg==
+  email: LW4gaGFyaV9yb25nYWxpQGludHVpdC5jb20K
